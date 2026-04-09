@@ -1,0 +1,42 @@
+// 1. Parsing du JSON envoyé par l'ESP32
+let data;
+try {
+    data = (typeof msg.payload === 'string') ? JSON.parse(msg.payload) : msg.payload;
+} catch (e) {
+    node.error("Erreur JSON : " + e.message);
+    return null;
+}
+
+// 2. Extraction du NOM depuis le topic (/status/NOM_DU_DISTRIBUTEUR)
+const topicParts = msg.topic.split("/");
+const nameDispenser = topicParts[2]; 
+
+if (!nameDispenser) {
+    node.warn("Nom du distributeur non trouvé dans le topic !");
+    return null;
+}
+
+// 3. Traduction de l'état (1 -> empty, 0 -> full)
+// Pour ta route : /modifyDispenserStatus/:nameDispenser/:fullOrEmpty
+const stateStr = (data.is_empty == 1) ? "empty" : "full";
+
+// 4. Construction de l'URL finale
+// Exemple : http://localhost:3001/api/modifyDispenserStatus/Distributeur_6/empty
+const url = "http://172.16.7.161:2223/api/modifyDispenserStatus/" + nameDispenser + "/" + stateStr;
+msg.url = url;
+msg.method = "POST"; // Ta route est un router.post
+
+// 5. Ajout du TOKEN dans les headers pour l'authentification
+msg.headers = {
+    "Authorization": "Bearer " + data.token,
+    "Content-Type": "application/json"
+};
+
+// Le payload peut rester vide car tout est dans l'URL (params)
+msg.payload = {}; 
+
+// 🔍 Logs pour debug dans la console Node-RED
+node.warn("🚀 Appel API : " + url);
+node.warn("🔑 Token utilisé : " + data.token.substring(0, 15) + "...");
+
+return msg;

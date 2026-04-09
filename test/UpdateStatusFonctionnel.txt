@@ -1,0 +1,63 @@
+#include "UpdateStatus.h"
+#include "config.h"
+#include <Arduino.h>
+
+// Constructeur : lie l'instance MQTT
+UpdateStatus::UpdateStatus(PubSubClient &mqttClient) : mqtt(mqttClient) {}
+
+// Permet de mettre à jour l'ID reçu après le login API
+void UpdateStatus::setId(int id) {
+    _myId = id;
+    Serial.print("🆔 ID mis à jour dans UpdateStatus : "); 
+    Serial.println(_myId);
+}
+
+// Gestion de la connexion au Broker MQTT distant
+void UpdateStatus::connectMQTT() {
+    mqtt.setServer(MQTT_HOST, MQTT_PORT);
+    
+    while (!mqtt.connected()) {
+        Serial.print("🔗 Tentative connexion MQTT...");
+        
+        // Connexion avec les identifiants du serveur distant
+        if (mqtt.connect("ESP32ClientStone", MQTT_USER, MQTT_PASSWD)) {
+            Serial.println(" ✅ CONNECTÉ !");
+
+            // 1. Envoi du message "salut" pour ton test mosquitto_sub
+            mqtt.publish("salut", "L'ESP32 est en ligne !"); 
+
+            // 2. Notification sur le topic spécifique du distributeur
+            String initTopic = "/dispenser/" + String(_myId);
+            mqtt.publish(initTopic.c_str(), "online");
+            
+            // 3. Souscription aux réponses (ex: scans de badges)
+            mqtt.subscribe(TOPIC_SCANS_RESPONSE);
+            
+            Serial.println("📤 Messages initiaux envoyés.");
+        } else {
+            // Affiche le code d'erreur si la connexion échoue (ex: rc=-2 pour problème réseau)
+            Serial.printf(" ❌ Échec, rc=%d. Réessai dans 5s...\n", mqtt.state());
+            delay(5000);
+        }
+    }
+}
+
+// Envoi de l'état du capteur (vide/plein)
+void UpdateStatus::sendStatus(bool isEmpty) {
+    if (!mqtt.connected()) return;
+
+    // Topic dynamique basé sur l'ID (ex: /dispenser/5)
+    String topic = "/dispenser/" + String(_myId);
+    
+    // Construction du JSON pour le serveur
+    String payload = "{\"id_soap_dispenser\":" + String(_myId) + ",\"is_empty\":" + (isEmpty ? "1" : "0") + "}";
+
+    if (mqtt.publish(topic.c_str(), payload.c_str())) {
+        Serial.print("📤 Statut envoyé sur "); 
+        Serial.print(topic);
+        Serial.print(" : "); 
+        Serial.println(payload);
+    } else {
+        Serial.println("❌ Échec de publication MQTT");
+    }
+}

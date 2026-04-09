@@ -1,0 +1,41 @@
+#include "Login.h"
+#include "config.h"
+#include <Arduino.h>
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+
+Login::Login() {}
+
+// On passe la variable tokenOut par référence pour la remplir
+int Login::LoginDispenser(String &tokenOut) {
+    if (WiFi.status() != WL_CONNECTED) return -1;
+
+    HTTPClient http;
+    String url = "http://" + String(API_HOST) + ":" + String(API_PORT) + "/api/dispenser/login";
+    http.begin(url);
+    http.addHeader("Content-Type", "application/json");
+
+    String jsonBody = "{\"name_soap_dispenser\":\"" + String(DISPENSER_NAME) + "\",\"password\":\"" + String(DISPENSER_PASSWORD) + "\"}";
+    int code = http.POST(jsonBody);
+
+    if (code == 200) {
+        String response = http.getString();
+        DynamicJsonDocument doc(2048);
+        deserializeJson(doc, response);
+        
+        if (doc.containsKey("token")) {
+            tokenOut = doc["token"].as<String>();
+            
+            Serial.println("🔑 TOKEN REÇU :");
+            Serial.println(tokenOut); 
+            
+            return 1; // Succès
+        }
+    } else {
+        Serial.printf("❌ Erreur HTTP au Login : %d\n", code);
+    }
+    
+    http.end();
+    return -1; // Échec
+}

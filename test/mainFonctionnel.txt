@@ -1,0 +1,65 @@
+#include <Arduino.h>
+#include <WiFi.h>
+#include <PubSubClient.h>
+#include "config.h"
+#include "Login.h"
+#include "UpdateStatus.h"
+#include "WaterSensor.h"
+
+WaterSensor monCapteur(23);
+Login login;
+WiFiClient espClient;
+PubSubClient mqtt(espClient);
+UpdateStatus updater(mqtt);
+
+bool lastIsEmpty = true;
+
+void setup() {
+    Serial.begin(115200);
+    delay(1000); // Temps pour ouvrir le moniteur
+    Serial.println("\n======================================");
+    Serial.println("🚀 DÉMARRAGE DU SYSTÈME");
+    Serial.println("======================================");
+
+    Serial.print("1. Connexion WiFi à: "); Serial.println(WIFI_SSID);
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    
+    while (WiFi.status() != WL_CONNECTED) { 
+        delay(500); 
+        Serial.print("."); 
+    }
+    Serial.println("\n WiFi Connecté! IP: " + WiFi.localIP().toString());
+
+    Serial.println("2. Tentative de Login API...");
+    int id = login.LoginDispenser();
+    
+    if (id != -1) {
+        Serial.printf("Login réussi! ID reçu: %d\n", id);
+        updater.setId(id);
+    } else {
+        Serial.println(" Login échoué (ID -1). On utilise l'ID par défaut.");
+    }
+
+    Serial.println("3. Connexion au Broker MQTT...");
+    updater.connectMQTT();
+    Serial.println(" Setup terminé. Entrée en boucle infinie.");
+}
+
+void loop() {
+    if (!mqtt.connected()) {
+        Serial.println(" Reconnexion MQTT en cours...");
+        updater.connectMQTT();
+    }
+    mqtt.loop();
+
+    bool isEmptyCurrent = !monCapteur.estDetecte();
+    
+    if (isEmptyCurrent != lastIsEmpty) {
+        Serial.print("📢 Changement d'état détecté: ");
+        Serial.println(isEmptyCurrent ? "VIDE 🫙" : "PLEIN 🧼");
+        updater.sendStatus(isEmptyCurrent);
+        lastIsEmpty = isEmptyCurrent;
+    }
+    
+    delay(1000); // Un peu plus lent pour lire la console
+}

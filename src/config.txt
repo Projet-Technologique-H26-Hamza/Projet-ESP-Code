@@ -1,0 +1,36 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+
+
+// ===== WiFi EcoleDuWeb2.4g   EcoleDuWEB@@  172.16.7.161 pour api  =====
+#define WIFI_SSID "FIZZ"
+#define WIFI_PASSWORD "FIZZ123456"
+
+// ===== API login (HTTPS via Nginx) =====
+// On passe par le port 443 (HTTPS standard)
+#define API_HOST "distributeur.alain.lab.edwrdl.ca"
+#define API_PORT 443
+#define API_ENDPOINT "/api/dispenser/login"
+#define DISPENSER_NAME "string123"
+#define DISPENSER_PASSWORD "Patate123"
+
+
+
+// ===== MQTT Sécurisé (MQTTS) =====
+// On utilise le port 8883 que tu as configuré dans Mosquitto
+#define MQTT_HOST "138.197.146.253"
+#define MQTT_PORT 1883
+#define MQTT_USER "admin"
+#define MQTT_PASSWD "Patate123"
+
+
+
+// Topics MQTT
+#define TOPIC_SCANS "dispenser/status"
+#define TOPIC_SCANS_RESPONSE "dispenser/response"
+#define TOPIC_SCANS_DYNAMIC_RESPONSE "dispenser/dynamic_response"
+
+
+
+#endif

@@ -1,0 +1,21 @@
+#ifndef UPDATESTATUS_H
+#define UPDATESTATUS_H
+
+#include <PubSubClient.h> 
+
+class UpdateStatus {
+public:
+    // Constructeur : on passe le client MQTT existant
+    UpdateStatus(PubSubClient &mqttClient);
+
+    // Connexion au broker MQTT
+    void connectMQTT();
+
+    // Envoie le statut du distributeur (true = vide, false = plein)
+    void sendStatus(bool isEmpty);
+
+private:
+    PubSubClient &mqtt; // Référence au client MQTT
+};
+
+#en
