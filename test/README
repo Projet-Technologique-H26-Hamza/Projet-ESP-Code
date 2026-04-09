@@ -1,11 +1,15 @@
+Description :
+Ce projet permet de faire fonctionner un capteur à contact infrarouge. Chaque fois que l’eau n’est pas présente, un topic est publié afin de changer le statut du distributeur, qui devient « vide à remplir », et vice versa lorsque l’eau est détectée.
 
-This directory is intended for PlatformIO Test Runner and project tests.
+Technologies utilisées :
+Le code est écrit en C.
 
-Unit Testing is a software testing method by which individual units of
-source code, sets of one or more MCU program modules together with associated
-control data, usage procedures, and operating procedures, are tested to
-determine whether they are fit for use. Unit testing finds problems early
-in the development cycle.
+Structure du projet :
 
-More information about PlatformIO Unit Testing:
-- https://docs.platformio.org/en/latest/advanced/unit-testing/index.html
+Le fichier Water permet de gérer le capteur.
+Le fichier update permet de lancer le topic avec les informations nécessaires afin de modifier le statut du distributeur dans la base de données.
+Le fichier login permet d’inscrire le distributeur et d’obtenir son identifiant ainsi que ses tokens.
+Le fichier config contient tous les paramètres nécessaires pour se connecter à l’API MQTT (MQTTS) ainsi qu’au réseau Wi-Fi.
+
+Installation :
+Cloner le projet avec git clone, installer les dépendances, puis l’ajouter dans platformio.ini et exécuter
