@@ -17,10 +17,8 @@ void UpdateStatus::setToken(String token) {
 }
 
 void UpdateStatus::connectMQTT() {
-    // Indispensable pour accepter ton certificat auto-signé sur le port 8883
     espClient.setInsecure(); 
     
-    // On lie le client sécurisé à PubSubClient
     mqtt.setClient(espClient);
     mqtt.setServer(MQTT_HOST, MQTT_PORT);
 
@@ -28,7 +26,6 @@ void UpdateStatus::connectMQTT() {
         Serial.print("Tentative de connexion MQTTS...");
         if (mqtt.connect("ESP32ClientStone", MQTT_USER, MQTT_PASSWD)) {
             Serial.println(" connecté !");
-            // Topic initial avec le NOM
             String initTopic = "/status/" + String(DISPENSER_NAME);
             mqtt.publish(initTopic.c_str(), "online");
             mqtt.subscribe(TOPIC_SCANS_RESPONSE);
@@ -46,14 +43,11 @@ void UpdateStatus::sendStatus(bool isEmpty) {
         connectMQTT();
     }
 
-    // Utilisation du NOM dans le topic au lieu de l'ID
     String topic = "/status/" + String(DISPENSER_NAME);
     
-    // JSON envoyé au broker contenant le token
     String payload = "{\"name\":\"" + String(DISPENSER_NAME) + "\",";
     payload += "\"is_empty\":" + String(isEmpty ? "1" : "0") + ",";
     payload += "\"token\":\"" + _token + "\"}";
 
     mqtt.publish(topic.c_str(), payload.c_str());
-    Serial.println("📤 Message envoyé avec le Token sur topic : " + topic);
 }
