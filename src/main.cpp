@@ -20,9 +20,7 @@ const unsigned long debounceDelay = 2000;
 void setup() {
     Serial.begin(115200);
     delay(1000);
-    Serial.println("\n======================================");
     Serial.println("DÉMARRAGE DU SYSTÈME");
-    Serial.println("======================================");
 
     Serial.print("1. Connexion WiFi à: "); Serial.println(WIFI_SSID);
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -37,16 +35,13 @@ void setup() {
     int loginResult = login.LoginDispenser(monToken);
 
     if (loginResult != -1) {
-        Serial.println("Login réussi!");
         updater.setToken(monToken);
         updater.setId(6);
     } else {
-        Serial.println(" Login échoué (ID -1). On utilise l'ID par défaut.");
+        Serial.println(" Login échoué ");
     }
 
-    Serial.println("3. Connexion au Broker MQTT...");
     updater.connectMQTT();
-    Serial.println(" Setup terminé. Entrée en boucle infinie.");
 }
 void loop() {
     if (!mqtt.connected()) {
