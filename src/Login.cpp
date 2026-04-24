@@ -33,11 +33,11 @@ int Login::LoginDispenser(String &tokenOut) {
         if (doc.containsKey("token")) {
             tokenOut = doc["token"].as<String>();
             http.end();
-            delete client; // Libérer la mémoire
-            return 1; // Succès
+            delete client; 
+            return 1;
         }
     } else {
-        Serial.printf("❌ Erreur HTTP au Login : %d\n", code);
+        Serial.printf(" Erreur HTTP au Login : %d\n", code);
     }
     
     http.end();
